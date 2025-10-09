@@ -1,2 +1,4 @@
-Application Name = spring-ollama-demo
-Ollama Modal = gemma3:4b
+Application Name: spring-ollama-demo,
+
+
+Ollama Modal: gemma3:4b
