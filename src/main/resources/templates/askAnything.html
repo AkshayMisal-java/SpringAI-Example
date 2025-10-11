@@ -26,6 +26,7 @@
                 </div>
             </form>
             <div class="chat-response" th:if="${answer}">
+				<p><small>Time taken: <span th:text="${executionTimeMs}"></span></small></p>
                 <p><strong>Question:</strong> <span th:text="${question}"></span></p>
                 <p><strong>Answer:</strong> <span id="markdown-content" th:text="${answer}" style="display: none;"></span></p>
             </div>

@@ -1,6 +1,5 @@
-package com.ollama.demo;
+package com.ollama.demo.prompttemplate;
 
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,12 +7,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.ollama.demo.configuration.TrackExecutionTime;
+import com.ollama.demo.services.OllamaAiService;
+
 
 @Controller
-public class AnswerAnyThingController {
+public class AskMeAnythingController {
 
 	@Autowired
-    private OllamaService service;
+    private OllamaAiService service;
 
     @GetMapping("/showAskAnything")
     public String showAskAnything() {
@@ -21,12 +23,12 @@ public class AnswerAnyThingController {
     }
 
     @PostMapping("/askAnything")
+    @TrackExecutionTime
     public String askAnything(@RequestParam("question") String question, Model model) {
-    	System.out.println("question: "+ question);
-    	ChatResponse response = service.generateAnswer(question);
-    	System.out.println("Answer: " + response);
+    	
+    	String response = service.generateAnswer(question);
     	model.addAttribute("question",question);
-    	model.addAttribute("answer",response.getResult().getOutput().getContent());
+    	model.addAttribute("answer",response);
         return "askAnything";
     }
 }
