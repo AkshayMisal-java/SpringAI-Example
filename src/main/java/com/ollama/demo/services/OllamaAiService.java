@@ -5,28 +5,38 @@ import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ollama.demo.configuration.TrackExecutionTime;
+import com.ollama.demo.configuration.OllamaConfig;
 import com.ollama.demo.dtos.CountryCuisines;
 
 @Service
 public class OllamaAiService {
+
+    private final OllamaConfig ollamaConfig;
 	
 	private ChatClient chatClient;
 	
 	@Autowired
 	private EmbeddingModel embeddingModel;
 	
-	public OllamaAiService(ChatClient.Builder builder) {
+	@Autowired
+	private VectorStore vectorStore;
+	
+	public OllamaAiService(ChatClient.Builder builder, OllamaConfig ollamaConfig) {
 		InMemoryChatMemory inMemoryChatMemory = new InMemoryChatMemory();
 		MessageChatMemoryAdvisor messageChatMemoryAdvisor = new MessageChatMemoryAdvisor(inMemoryChatMemory);
 		chatClient = builder.defaultAdvisors(messageChatMemoryAdvisor).build();
+		this.ollamaConfig = ollamaConfig;
 	}
 	
 	
@@ -107,6 +117,26 @@ public class OllamaAiService {
 
 		// Calculate and return cosine similarity
 		return dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
+	}
+
+
+	public List<Document> searchJobs(String query) {
+		return vectorStore
+				.similaritySearch(SearchRequest.query(query)
+						.withTopK(3));
+	}
+
+	public List<Document> searchSupportTicket(String query) {
+		System.out.println("query: "+ query);
+		List<Document> response = vectorStore
+				.similaritySearch(SearchRequest.query(query)
+						.withTopK(1));
+		System.out.println("response: "+ response.get(0).getContent());
+		return response;
+	}
+	
+	public String answer(String query) {		
+		return chatClient.prompt(query).advisors(new QuestionAnswerAdvisor(vectorStore)).call().content();
 	}
 
 }
